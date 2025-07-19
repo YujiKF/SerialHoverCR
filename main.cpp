@@ -7,7 +7,6 @@
 #include <windows.h>
 
 #include "serialib.h"
-#include "serialib.cpp"
 
 #define START_FRAME 0xABCD // Start Frame decidido pelo firmware do Hoverboard
 #define BAUDRATE 19200 // Baudrate decidido pelo firmware do Hoverboard
