@@ -23,6 +23,9 @@ typedef struct {
     int16_t iSteer;
     uint8_t wStateMaster; // Indica a cor do LED na master, 1=ledGreen, 2=ledOrange, 4=ledRed, 8=ledUp, 16=ledDown, 32=Battery3Led, 64=Disable, 128=ShutOff
     uint8_t wStateSlave;  // Indica a cor do LED na slave
+    float   Kp;
+    float   Ki;
+    float   Kd;
     uint16_t checksum;
 } SerialServer2Hover;
 #pragma pack()
@@ -65,12 +68,15 @@ void HoverSetup(serialib &oSerial, const char *port, int baudrate) {
     printf("Conexão bem sucedida com a porta %s\n", port); // Imprime mensagem caso a conexão tenha sido bem sucedida
 }
 
-void HoverSend(serialib &oSerial, int16_t iSteer, int16_t iSpeed, uint8_t wStateMaster = 32, uint8_t wStateSlave = 32) { // Função para enviar os dados para o Hoverboard
+void HoverSend(serialib &oSerial, int16_t iSteer, int16_t iSpeed, uint8_t wStateMaster = 32, uint8_t wStateSlave = 32, float Kp, float Ki, float Kd) { // Função para enviar os dados para o Hoverboard
     SerialServer2Hover oData;
     oData.iSpeed = (int16_t)iSpeed;
     oData.iSteer = (int16_t)iSteer;
     oData.wStateMaster = wStateMaster;
     oData.wStateSlave = wStateSlave;
+    oData.Kp = Kp;
+    oData.Ki = Ki;
+    oData.Kd = Kd;
     oData.checksum = CalcCRC((uint8_t*)&oData, sizeof(SerialServer2Hover) - 2);
     oSerial.writeBytes((uint8_t*) &oData, sizeof(SerialServer2Hover));
 }
@@ -113,11 +119,14 @@ int main() {
         unsigned long iNow = GetTickCount(); // Obtém o tempo atual em milissegundos desde que o sistema foi iniciado
 
         int16_t iSpeed = 250;
-        int16_t iSteer = -50; // 
+        int16_t iSteer = -50; 
+        float Kp_s = 0.4f; // Coeficiente proporcional do PID
+        float Ki_s = 0.0f; // Coeficiente integral do PID
+        float Kd_s = 0.0f; // Coeficiente derivativo do PID
         //int16_t iSteer = 1 * (abs((int)((iNow/400+100) % 400) - 200) - 100); // Varia de +100 até -100 e depois para +100 de novo
 
         if (iNow > iNext) { 
-            HoverSend(serial, iSteer, iSpeed, wState, wState); // Envia os dados para o Hoverboard
+            HoverSend(serial, iSteer, iSpeed, wState, wState, Kp_s,Ki_s,Kd_s); // Envia os dados para o Hoverboard
             iNext = iNow + SEND_MILLIS; // Atualiza o tempo do próximo envio de dados
         }
 
