@@ -28,5 +28,5 @@ All the code is written in **C++**, leveraging the serial communication library 
 6.  **Run the Application:**
     * Execute the compiled program from your terminal:
         ```bash
-        \.hoverboard.exe
+        .\hoverboard.exe
         ```
