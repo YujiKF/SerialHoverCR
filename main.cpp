@@ -67,7 +67,7 @@ void HoverSetup(serialib &oSerial, const char *port, int baudrate) {
     printf("Conexão bem sucedida com a porta %s\n", port); // Imprime mensagem caso a conexão tenha sido bem sucedida
 }
 
-void HoverSend(serialib &oSerial, int16_t iSteer, int16_t iSpeed, uint8_t wStateMaster = 32, uint8_t wStateSlave = 32, float Kp, float Ki, float Kd) { // Função para enviar os dados para o Hoverboard
+void HoverSend(serialib &oSerial, int16_t iSteer, int16_t iSpeed, uint8_t wStateMaster, uint8_t wStateSlave, float Kp, float Ki, float Kd) { // Função para enviar os dados para o Hoverboard
     SerialServer2Hover oData;
     oData.iSpeed = (int16_t)iSpeed;
     oData.iSteer = (int16_t)iSteer;
@@ -95,8 +95,8 @@ void HoverReceive(serialib &oSerial, SerialHover2Server &oData) { // Função pa
         if (crcReceived == crcCalculated) {
             // Dados válidos
             printf("Dados recebidos com sucesso!\n");
-            printf("Speed Left: %d, Speed Right: %d, Volt: %d, Amp Left: %d, Amp Right: %d\n", 
-                oData.iSpeedL, oData.iSpeedR, oData.iVolt, oData.iAmpL, oData.iAmpR);
+            printf("RealSpeed: %d, Speed Right: %d, Speed: %d, Measured_speed: %d, Amp Right: %d\n", 
+                oData.iSpeedL, oData.iSpeedR, oData.iVolt, -(oData.iAmpL), oData.iAmpR);
             printf("Odom Left: %ld, Odom Right: %ld\n", oData.iOdomL, oData.iOdomR);
         } else {
             printf("Erro de CRC, dados corrompidos!\n");
@@ -117,20 +117,20 @@ int main() {
         unsigned long iNext = 0; // Variável para armazenar o tempo do próximo envio de dados
         unsigned long iNow = GetTickCount(); // Obtém o tempo atual em milissegundos desde que o sistema foi iniciado
 
-        int16_t iSpeed = 250;
-        int16_t iSteer = -50; 
-        float Kp_s = 0.4f; // Coeficiente proporcional do PID
-        float Ki_s = 0.0f; // Coeficiente integral do PID
-        float Kd_s = 0.0f; // Coeficiente derivativo do PID
+        int16_t iSpeed = -300;
+        int16_t iSteer = 0; 
+        float Kp_s = 30.0f; // Coeficiente proporcional do PID
+        float Ki_s = 85.0f; // Coeficiente integral do PID
+        float Kd_s = 5.0f; // Coeficiente derivativo do PID
         //int16_t iSteer = 1 * (abs((int)((iNow/400+100) % 400) - 200) - 100); // Varia de +100 até -100 e depois para +100 de novo
 
         if (iNow > iNext) { 
-            HoverSend(serial, iSteer, iSpeed, wState, wState, Kp_s,Ki_s,Kd_s); // Envia os dados para o Hoverboard
+            HoverSend(serial, iSteer, iSpeed, wState, wState, Kp_s, Ki_s, Kd_s); // Envia os dados para o Hoverboard
             iNext = iNow + SEND_MILLIS; // Atualiza o tempo do próximo envio de dados
         }
 
         HoverReceive(serial, oData); // Recebe os dados do Hoverboard
-        Sleep(100); // Aguarda um curto intervalo antes de enviar os próximos dados
+        //Sleep(200); // Aguarda um curto intervalo antes de enviar os próximos dados
     }
 
     serial.closeDevice(); // Fecha a porta serial
